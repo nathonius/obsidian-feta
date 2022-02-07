@@ -1,3 +1,15 @@
-/* Sets all the text color to red! */
-body {
+.feta-export--shade {
+}
+
+.feta-export--modal .modal {
+  max-width: 90vw;
+}
+
+.feta-export--output-path .setting-item-control {
+  flex: 3 1 auto;
+}
+
+.feta-export--output-path input {
+  width: 100%;
+  min-width: 250px;
 }

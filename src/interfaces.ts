@@ -31,7 +31,7 @@ export interface FetaSettings {
 export const DEFAULT_SETTINGS: FetaSettings = {
   renderHtml: true,
   showSidebarIcon: true,
-  exportLocation: '.obsidian/plugins/json-export/export.json',
+  exportLocation: '',
   requiredFrontmatterKey: '',
   requiredTag: '',
   rootFolder: ''

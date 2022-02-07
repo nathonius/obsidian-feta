@@ -1,5 +1,8 @@
 import { App, FuzzySuggestModal } from 'obsidian';
 
+/**
+ * Generic string suggest modal
+ */
 export class SuggestModal extends FuzzySuggestModal<string> {
   items: Array<string> = [];
   callback: (choice: string) => unknown;

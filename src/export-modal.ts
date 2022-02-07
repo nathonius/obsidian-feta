@@ -1,9 +1,12 @@
 import { App, Modal, Notice, Setting, TFolder } from 'obsidian';
+import { join } from 'path';
+import { DEFAULT_EXPORT_PATH } from './constants';
 import { SuggestModal } from './folder-suggest';
 import { JSONExport } from './interfaces';
 import { FetaPlugin } from './plugin';
 
 export class ExportModal extends Modal {
+  private working = false;
   private readonly suggestModal = new SuggestModal(this.app);
   callback: (
     folder: TFolder,
@@ -14,6 +17,11 @@ export class ExportModal extends Modal {
 
   constructor(app: App, private readonly plugin: FetaPlugin) {
     super(app);
+    this.containerEl.addClass('feta-export--modal');
+  }
+
+  onClose(): void {
+    this.working = false;
   }
 
   onOpen(): void {
@@ -22,15 +30,7 @@ export class ExportModal extends Modal {
 
     const pathSetting = new Setting(this.contentEl)
       .setName('Export Root Path')
-      .addText((text) => {
-        text
-          .setPlaceholder('Folder')
-          .setValue(this.plugin.settings.rootFolder)
-          .onChange((value) => {
-            this.plugin.settings.rootFolder = value;
-            this.plugin.saveSettings();
-          });
-      })
+      .setDesc('Required. Notes in this folder and subfolders will be included in export.')
       .addExtraButton((button) => {
         button
           .setIcon('folder')
@@ -41,23 +41,23 @@ export class ExportModal extends Modal {
             this.suggestModal.callback = (folderPath) => {
               this.plugin.settings.rootFolder = folderPath;
               this.plugin.saveSettings();
-              ((pathSetting.components[0] as any).inputEl as HTMLInputElement).value = folderPath;
+              ((pathSetting.components[1] as any).inputEl as HTMLInputElement).value = folderPath;
             };
+          });
+      })
+      .addText((text) => {
+        text
+          .setPlaceholder('Folder')
+          .setValue(this.plugin.settings.rootFolder)
+          .onChange((value) => {
+            this.plugin.settings.rootFolder = value;
+            this.plugin.saveSettings();
           });
       });
 
     const tagSetting = new Setting(this.contentEl)
       .setName('Required Tag')
       .setDesc('Optional. Only notes with this tag will be included in the export.')
-      .addText((text) => {
-        text
-          .setPlaceholder('Tag')
-          .setValue(this.plugin.settings.requiredTag)
-          .onChange((value) => {
-            this.plugin.settings.requiredTag = value;
-            this.plugin.saveSettings();
-          });
-      })
       .addExtraButton((button) => {
         button
           .setIcon('hashtag')
@@ -68,8 +68,17 @@ export class ExportModal extends Modal {
             this.suggestModal.callback = (tag) => {
               this.plugin.settings.requiredTag = tag;
               this.plugin.saveSettings();
-              ((tagSetting.components[0] as any).inputEl as HTMLInputElement).value = tag;
+              ((tagSetting.components[1] as any).inputEl as HTMLInputElement).value = tag;
             };
+          });
+      })
+      .addText((text) => {
+        text
+          .setPlaceholder('Tag')
+          .setValue(this.plugin.settings.requiredTag)
+          .onChange((value) => {
+            this.plugin.settings.requiredTag = value;
+            this.plugin.saveSettings();
           });
       });
 
@@ -93,19 +102,34 @@ export class ExportModal extends Modal {
       });
     });
 
-    new Setting(this.contentEl)
+    const exportPathSetting = new Setting(this.contentEl)
+      .setClass('feta-export--output-path')
       .setName('Export file')
-      .setDesc('This path is relative to your vault folder.')
+      .setDesc('Defaults to the plugin folder.')
       .addText((text) => {
-        text.setValue(this.plugin.settings.exportLocation).onChange((value) => {
-          this.plugin.settings.exportLocation = value;
+        text
+          .setPlaceholder(join(this.plugin.vaultBasePath, DEFAULT_EXPORT_PATH))
+          .setValue(this.plugin.settings.exportLocation)
+          .onChange((value) => {
+            this.plugin.settings.exportLocation = value;
+            this.plugin.saveSettings();
+          });
+      });
+    ((exportPathSetting.components[0] as any).inputEl as HTMLInputElement).style.width = '100%';
+
+    new Setting(this.contentEl)
+      .setName('Show ribbon icon')
+      .setDesc('Just a quick shortcut to open the exporter.')
+      .addToggle((toggle) => {
+        toggle.setValue(this.plugin.settings.showSidebarIcon).onChange((value) => {
+          this.plugin.settings.showSidebarIcon = value;
           this.plugin.saveSettings();
         });
       });
 
     const exportButton = this.contentEl.createEl('button', { text: 'Export', cls: 'mod-cta' });
     exportButton.addEventListener('click', () => {
-      if (this.plugin.settings.rootFolder) {
+      if (this.plugin.settings.rootFolder && !this.working) {
         const selectedFolder = folders.find((f) => f.path === this.plugin.settings.rootFolder);
         if (selectedFolder) {
           this.exportFolder(
@@ -128,15 +152,9 @@ export class ExportModal extends Modal {
     requiredFrontmatter: string
   ): Promise<void> {
     if (folder) {
-      const shade = document.body.createDiv();
-      shade.style.width = '100vw';
-      shade.style.height = '100vh';
-      shade.style.backgroundColor = 'rgba(#000000, 0.5)';
-      shade.style.pointerEvents = 'none';
-      document.body.appendChild(shade);
-      const jsonExport = await this.callback(folder, renderHtml, requiredTag, requiredFrontmatter);
-      shade.detach();
-      new Notice(`Exported ${jsonExport.meta.length} notes.`);
+      this.working = true;
+      await this.callback(folder, renderHtml, requiredTag, requiredFrontmatter);
+      this.working = false;
       this.close();
     }
   }
