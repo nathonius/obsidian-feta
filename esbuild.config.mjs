@@ -16,11 +16,11 @@ const vaultPath = process.argv[3];
 function devCopy(error) {
   if (vaultPath && !error) {
     try {
-      const copyPath = join(vaultPath, '.obsidian/plugins/json-export');
+      const copyPath = join(vaultPath, '.obsidian/plugins/feta');
       process.stdout.write(`Copying to ${copyPath}...`);
-      copyFileSync('main.js', join(vaultPath, '.obsidian/plugins/json-export/main.js'));
-      copyFileSync('manifest.json', join(vaultPath, '.obsidian/plugins/json-export/manifest.json'));
-      copyFileSync('styles.css', join(vaultPath, '.obsidian/plugins/json-export/styles.css'));
+      copyFileSync('main.js', join(vaultPath, '.obsidian/plugins/feta/main.js'));
+      copyFileSync('manifest.json', join(vaultPath, '.obsidian/plugins/feta/manifest.json'));
+      // copyFileSync('styles.css', join(vaultPath, '.obsidian/plugins/feta/styles.css'));
       process.stdout.write('Done.\n');
     } catch {
       process.stdout.write('\n****COULD NOT COPY FILES****\n');

@@ -18,3 +18,21 @@ export interface JSONExport {
   meta: NoteMeta[];
   notes: Record<string, ExportedNote>;
 }
+
+export interface FetaSettings {
+  showSidebarIcon: boolean;
+  exportLocation: string;
+  renderHtml: boolean;
+  requiredFrontmatterKey: string;
+  requiredTag: string;
+  rootFolder: string;
+}
+
+export const DEFAULT_SETTINGS: FetaSettings = {
+  renderHtml: true,
+  showSidebarIcon: true,
+  exportLocation: '.obsidian/plugins/json-export/export.json',
+  requiredFrontmatterKey: '',
+  requiredTag: '',
+  rootFolder: ''
+};

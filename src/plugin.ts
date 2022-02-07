@@ -6,18 +6,32 @@ import {
   getAllTags,
   FileSystemAdapter,
   MarkdownView,
-  EventRef
+  EventRef,
+  addIcon
 } from 'obsidian';
-import { JSONExport, NoteMeta } from './interfaces';
+import { DEFAULT_SETTINGS, FetaSettings, JSONExport, NoteMeta } from './interfaces';
 import slugify from 'slugify';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { ExportModal } from './export-modal';
+import { FetaSettingsTab } from './settings';
+import { FETA_ICON } from './constants';
 
 export class FetaPlugin extends Plugin {
-  private readonly exportModal = new ExportModal(this.app);
+  private ribbonIcon: HTMLElement | null = null;
+  private readonly exportModal = new ExportModal(this.app, this);
+  settings: FetaSettings = DEFAULT_SETTINGS;
 
   async onload(): Promise<void> {
+    // Load settings
+    const savedData: FetaSettings | undefined = await this.loadData();
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, savedData);
+
+    addIcon(FETA_ICON.iconId, FETA_ICON.svgContent);
+    if (this.settings.showSidebarIcon) {
+      this.addFetaIcon();
+    }
+
     this.exportModal.callback = this.exportFolderToJSON.bind(this);
     // This adds a simple command that can be triggered anywhere
     this.addCommand({
@@ -27,6 +41,8 @@ export class FetaPlugin extends Plugin {
         this.exportModal.open();
       }
     });
+
+    this.addSettingTab(new FetaSettingsTab(this.app, this));
   }
 
   onunload(): void {}
@@ -151,5 +167,29 @@ export class FetaPlugin extends Plugin {
     });
     await waitForReady;
     return activeView;
+  }
+
+  async saveSettings(): Promise<void> {
+    if (this.settings.showSidebarIcon) {
+      this.addFetaIcon();
+    } else {
+      this.removeFetaIcon();
+    }
+    await this.saveData(this.settings);
+  }
+
+  private addFetaIcon(): void {
+    if (this.ribbonIcon === null) {
+      this.ribbonIcon = this.addRibbonIcon('feta-cheese', 'FETA Export', () => {
+        this.exportModal.open();
+      });
+    }
+  }
+
+  private removeFetaIcon(): void {
+    if (this.ribbonIcon) {
+      this.ribbonIcon.detach();
+      this.ribbonIcon = null;
+    }
   }
 }

@@ -1,3 +1,3 @@
-import { JsonExportPlugin } from './plugin';
+import { FetaPlugin } from './plugin';
 
-export default JsonExportPlugin;
+export default FetaPlugin;
