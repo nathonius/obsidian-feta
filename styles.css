@@ -1,4 +1,5 @@
-.feta-export--shade {
+.feta-export--bold-title {
+  color: var(--text-accent);
 }
 
 .feta-export--modal .modal {
@@ -9,7 +10,17 @@
   flex: 3 1 auto;
 }
 
-.feta-export--output-path input {
-  width: 100%;
+.feta-export--output-path .setting-item-info {
+  max-width: 50%;
+}
+
+.feta-export--output-path textarea {
   min-width: 250px;
+  flex: 4 1 auto;
+  word-break: break-all;
+}
+
+.feta-export--export-button {
+  float: right;
+  margin: 0;
 }

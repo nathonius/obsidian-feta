@@ -28,8 +28,20 @@ export class ExportModal extends Modal {
     const folders = this.app.vault.getAllLoadedFiles().filter((f) => f instanceof TFolder) as TFolder[];
     this.contentEl.empty();
 
+    // Build header
+    const exportHeader = this.contentEl.createEl('h3');
+    exportHeader.createSpan({ text: 'F', cls: 'feta-export--bold-title' });
+    exportHeader.createSpan({ text: 'older JSON ' });
+    exportHeader.createSpan({ text: 'E', cls: 'feta-export--bold-title' });
+    exportHeader.createSpan({ text: 'xpor' });
+    exportHeader.createSpan({ text: 'T', cls: 'feta-export--bold-title' });
+    exportHeader.createSpan({ text: ' ' });
+    exportHeader.createSpan({ text: 'A', cls: 'feta-export--bold-title' });
+    exportHeader.createSpan({ text: 'ddon 🧀' });
+
+    // Add root path setting
     const pathSetting = new Setting(this.contentEl)
-      .setName('Export Root Path')
+      .setName('Export root path 📁')
       .setDesc('Required. Notes in this folder and subfolders will be included in export.')
       .addExtraButton((button) => {
         button
@@ -55,8 +67,9 @@ export class ExportModal extends Modal {
           });
       });
 
+    // Add required tag setting
     const tagSetting = new Setting(this.contentEl)
-      .setName('Required Tag')
+      .setName('Required tag 🏷️')
       .setDesc('Optional. Only notes with this tag will be included in the export.')
       .addExtraButton((button) => {
         button
@@ -82,8 +95,9 @@ export class ExportModal extends Modal {
           });
       });
 
+    // Add required frontmatter key setting
     new Setting(this.contentEl)
-      .setName('Required Frontmatter Key')
+      .setName('Required frontmatter key 🔑')
       .setDesc('Optional. Only notes with this frontmatter key (any value) will be included in the export.')
       .addText((text) => {
         text
@@ -95,19 +109,26 @@ export class ExportModal extends Modal {
           });
       });
 
-    new Setting(this.contentEl).setName('Render HTML').addToggle((toggle) => {
-      toggle.setValue(this.plugin.settings.renderHtml).onChange((value) => {
-        this.plugin.settings.renderHtml = value;
-        this.plugin.saveSettings();
+    // Add low-fat no html setting
+    new Setting(this.contentEl)
+      .setName('Render HTML 🐮')
+      .setDesc('Disable for low-fat mode to export the raw markdown.')
+      .addToggle((toggle) => {
+        toggle.setValue(this.plugin.settings.renderHtml).onChange((value) => {
+          this.plugin.settings.renderHtml = value;
+          this.plugin.saveSettings();
+        });
       });
-    });
 
-    const exportPathSetting = new Setting(this.contentEl)
+    // Add export path setting
+    new Setting(this.contentEl)
       .setClass('feta-export--output-path')
-      .setName('Export file')
-      .setDesc('Defaults to the plugin folder.')
-      .addText((text) => {
-        text
+      .setName('Export file 📤')
+      .setDesc(
+        'Defaults to the plugin folder, should be the fully qualified path including the .json extension. The folder should already exist.'
+      )
+      .addTextArea((textArea) => {
+        textArea
           .setPlaceholder(join(this.plugin.vaultBasePath, DEFAULT_EXPORT_PATH))
           .setValue(this.plugin.settings.exportLocation)
           .onChange((value) => {
@@ -115,10 +136,10 @@ export class ExportModal extends Modal {
             this.plugin.saveSettings();
           });
       });
-    ((exportPathSetting.components[0] as any).inputEl as HTMLInputElement).style.width = '100%';
 
+    // Add ribbon icon toggle
     new Setting(this.contentEl)
-      .setName('Show ribbon icon')
+      .setName('Show ribbon icon 🧀')
       .setDesc('Just a quick shortcut to open the exporter.')
       .addToggle((toggle) => {
         toggle.setValue(this.plugin.settings.showSidebarIcon).onChange((value) => {
@@ -127,7 +148,10 @@ export class ExportModal extends Modal {
         });
       });
 
-    const exportButton = this.contentEl.createEl('button', { text: 'Export', cls: 'mod-cta' });
+    const exportButton = this.contentEl.createEl('button', {
+      text: 'Export',
+      cls: 'mod-cta feta-export--export-button'
+    });
     exportButton.addEventListener('click', () => {
       if (this.plugin.settings.rootFolder && !this.working) {
         const selectedFolder = folders.find((f) => f.path === this.plugin.settings.rootFolder);
