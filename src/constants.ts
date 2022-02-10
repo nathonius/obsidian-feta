@@ -5,3 +5,5 @@ export const FETA_ICON = {
 };
 
 export const DEFAULT_EXPORT_PATH = '.obsidian/plugins/feta/export.json';
+
+export const IMAGE_TYPES = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'];

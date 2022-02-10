@@ -120,6 +120,17 @@ export class ExportModal extends Modal {
         });
       });
 
+    // Add image export setting
+    new Setting(this.contentEl)
+      .setName('Export images 🖼️')
+      .setDesc("Images will be saved to an 'attachments' folder in the same folder as the exported json.")
+      .addToggle((toggle) => {
+        toggle.setValue(this.plugin.settings.exportImages).onChange((value) => {
+          this.plugin.settings.exportImages = value;
+          this.plugin.saveSettings();
+        });
+      });
+
     // Add export path setting
     new Setting(this.contentEl)
       .setClass('feta-export--output-path')

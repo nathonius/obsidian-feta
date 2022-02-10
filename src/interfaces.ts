@@ -23,6 +23,7 @@ export interface FetaSettings {
   showSidebarIcon: boolean;
   exportLocation: string;
   renderHtml: boolean;
+  exportImages: boolean;
   requiredFrontmatterKey: string;
   requiredTag: string;
   rootFolder: string;
@@ -30,6 +31,7 @@ export interface FetaSettings {
 
 export const DEFAULT_SETTINGS: FetaSettings = {
   renderHtml: true,
+  exportImages: true,
   showSidebarIcon: true,
   exportLocation: '',
   requiredFrontmatterKey: '',

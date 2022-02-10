@@ -12,10 +12,10 @@ import {
 } from 'obsidian';
 import { DEFAULT_SETTINGS, FetaSettings, JSONExport, NoteMeta } from './interfaces';
 import slugify from 'slugify';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { writeFile, mkdir } from 'fs/promises';
+import { join, dirname } from 'path';
 import { ExportModal } from './export-modal';
-import { DEFAULT_EXPORT_PATH, FETA_ICON } from './constants';
+import { DEFAULT_EXPORT_PATH, FETA_ICON, IMAGE_TYPES } from './constants';
 
 export class FetaPlugin extends Plugin {
   private ribbonIcon: HTMLElement | null = null;
@@ -61,15 +61,11 @@ export class FetaPlugin extends Plugin {
   /**
    * Recursively get all nested note children of a folder
    */
-  private getChildNotes(folder: TFolder, filterFn?: (file: TFile) => boolean): TFile[] {
+  private getChildNotes(folder: TFolder): TFile[] {
     const childNotes: TFile[] = [];
     folder.children.forEach((child) => {
-      if (child instanceof TFile && child.extension === 'md') {
-        if (filterFn && filterFn(child)) {
-          childNotes.push(child);
-        } else if (!filterFn) {
-          childNotes.push(child);
-        }
+      if (child instanceof TFile) {
+        childNotes.push(child);
       } else if (child instanceof TFolder) {
         childNotes.push(...this.getChildNotes(child));
       }
@@ -88,15 +84,23 @@ export class FetaPlugin extends Plugin {
   ): Promise<JSONExport> {
     const files = this.getChildNotes(folder);
     const jsonExport: JSONExport = { meta: [], notes: {} };
+    const images: TFile[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const result = await this.exportFileToJSON(file, renderHtml, requiredTag, requiredFrontmatter);
-      if (result) {
-        jsonExport.meta.push(result.meta);
-        jsonExport.notes[result.meta.slug] = result;
+      if (file.extension === 'md') {
+        const result = await this.exportFileToJSON(file, renderHtml, requiredTag, requiredFrontmatter);
+        if (result) {
+          jsonExport.meta.push(result.meta);
+          jsonExport.notes[result.meta.slug] = result;
+        }
+      } else if (this.fileIsImage(file)) {
+        images.push(file);
       }
     }
     await this.saveExport(jsonExport);
+    if (images.length > 0) {
+      await this.saveImages(images);
+    }
     return jsonExport;
   }
 
@@ -158,16 +162,28 @@ export class FetaPlugin extends Plugin {
    * Save the output of the export to the filesystem
    */
   async saveExport(exported: JSONExport): Promise<void> {
-    let exportPath = this.settings.exportLocation;
-    if (!this.settings.exportLocation) {
-      exportPath = join(this.vaultBasePath, DEFAULT_EXPORT_PATH);
-    }
+    const exportPath = this.getExportPath();
 
     try {
       await writeFile(exportPath, JSON.stringify(exported));
       new Notice(`Exported ${exported.meta.length} notes to ${exportPath}.`);
     } catch {
       new Notice(`Failed to export ${exported.meta.length} notes to ${exportPath}.`);
+    }
+  }
+
+  async saveImages(images: TFile[]): Promise<void> {
+    const exportPath = join(dirname(this.getExportPath()), 'attachments');
+    try {
+      await mkdir(exportPath);
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        const buffer = await this.app.vault.readBinary(image);
+        await writeFile(join(exportPath, image.name), Buffer.from(buffer));
+      }
+      new Notice(`Exported ${images.length} images to ${exportPath}.`);
+    } catch {
+      new Notice(`Failed to export ${images.length} notes to ${exportPath}.`);
     }
   }
 
@@ -239,5 +255,17 @@ export class FetaPlugin extends Plugin {
       this.ribbonIcon.detach();
       this.ribbonIcon = null;
     }
+  }
+
+  private fileIsImage(file: TFile): boolean {
+    return IMAGE_TYPES.includes(file.extension);
+  }
+
+  private getExportPath(): string {
+    let exportPath = this.settings.exportLocation;
+    if (!this.settings.exportLocation) {
+      exportPath = join(this.vaultBasePath, DEFAULT_EXPORT_PATH);
+    }
+    return exportPath;
   }
 }
