@@ -1,14 +1,21 @@
 {
   "name": "obsidian-feta",
-  "version": "1.0.0-beta.0",
-  "description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+  "version": "1.0.0-beta.2",
+  "description": "Export notes from your vault to HTML + JSON, just as they appear in preview.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs development",
     "build": "node esbuild.config.mjs production"
   },
   "keywords": [],
-  "author": "",
+  "author": {
+    "name": "OfficerHalf",
+    "url": "https://nathan-smith.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OfficerHalf/obsidian-feta/"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^16.11.6",

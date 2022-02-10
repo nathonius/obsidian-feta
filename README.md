@@ -56,3 +56,13 @@ Add or remove the convenient cheese icon from the ribbon.
 ## Contribute
 
 Please open a PR and fix my bugs. 🐛
+
+To develop:
+
+- Clone this repo and install:  
+  `npm install`
+- Ensure the plugin directory exists in the vault being used for development:  
+  `mkdir /path/to/your/vault/.obsidian/plugins/feta`
+- Start the development build:  
+  `npm run dev -- /path/to/your/vault`
+- Reload Obsidian after making code changes (or use the [hot reload plugin](https://github.com/pjeby/hot-reload)!)

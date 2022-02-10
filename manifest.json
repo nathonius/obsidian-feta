@@ -1,10 +1,10 @@
 {
   "id": "feta",
   "name": "FETA",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0-beta.2",
   "minAppVersion": "0.12.0",
-  "description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
-  "author": "Obsidian",
-  "authorUrl": "https://obsidian.md",
-  "isDesktopOnly": false
+  "description": "Export notes from your vault to HTML + JSON, just as they appear in preview.",
+  "author": "OfficerHalf",
+  "authorUrl": "https://nathan-smith.org",
+  "isDesktopOnly": true
 }
