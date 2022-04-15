@@ -12,7 +12,8 @@ export class ExportModal extends Modal {
     folder: TFolder,
     renderHtml: boolean,
     requiredTag: string,
-    requiredFrontmatter: string
+    requiredFrontmatter: string,
+    postProcess: { linkPrepend: string }
   ) => Promise<JSONExport>;
 
   constructor(app: App, private readonly plugin: FetaPlugin) {
@@ -148,6 +149,19 @@ export class ExportModal extends Modal {
           });
       });
 
+    new Setting(this.contentEl)
+      .setName('Link prepend 🔗')
+      .setDesc('Every anchor tag will be prepended with this value.')
+      .addText((text) => {
+        text
+          .setPlaceholder('Prepend')
+          .setValue(this.plugin.settings.linkPrepend)
+          .onChange((value) => {
+            this.plugin.settings.linkPrepend = value;
+            this.plugin.saveSettings();
+          });
+      });
+
     // Add ribbon icon toggle
     new Setting(this.contentEl)
       .setName('Show ribbon icon 🧀')
@@ -171,7 +185,8 @@ export class ExportModal extends Modal {
             selectedFolder,
             this.plugin.settings.renderHtml,
             this.plugin.settings.requiredTag,
-            this.plugin.settings.requiredFrontmatterKey
+            this.plugin.settings.requiredFrontmatterKey,
+            { linkPrepend: this.plugin.settings.linkPrepend }
           );
         } else {
           new Notice(`Folder ${this.plugin.settings.rootFolder} not found.`);
@@ -184,11 +199,12 @@ export class ExportModal extends Modal {
     folder: TFolder,
     renderHtml: boolean,
     requiredTag: string,
-    requiredFrontmatter: string
+    requiredFrontmatter: string,
+    postProcess: { linkPrepend: string }
   ): Promise<void> {
     if (folder) {
       this.working = true;
-      await this.callback(folder, renderHtml, requiredTag, requiredFrontmatter);
+      await this.callback(folder, renderHtml, requiredTag, requiredFrontmatter, postProcess);
       this.working = false;
       this.close();
     }

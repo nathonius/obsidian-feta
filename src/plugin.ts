@@ -80,7 +80,8 @@ export class FetaPlugin extends Plugin {
     folder: TFolder,
     renderHtml: boolean,
     requiredTag: string,
-    requiredFrontmatter: string
+    requiredFrontmatter: string,
+    postProcess: { linkPrepend: string }
   ): Promise<JSONExport> {
     const files = this.getChildNotes(folder);
     const jsonExport: JSONExport = { meta: [], notes: {} };
@@ -88,7 +89,7 @@ export class FetaPlugin extends Plugin {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.extension === 'md') {
-        const result = await this.exportFileToJSON(file, renderHtml, requiredTag, requiredFrontmatter);
+        const result = await this.exportFileToJSON(file, renderHtml, requiredTag, requiredFrontmatter, postProcess);
         if (result) {
           jsonExport.meta.push(result.meta);
           jsonExport.notes[result.meta.slug] = result;
@@ -112,7 +113,8 @@ export class FetaPlugin extends Plugin {
     file: TFile,
     renderHtml: boolean,
     requiredTag: string,
-    requiredFrontmatter: string
+    requiredFrontmatter: string,
+    postProcess: { linkPrepend: string }
   ): Promise<{ meta: NoteMeta; content: string } | null> {
     const fileCache = this.app.metadataCache.getFileCache(file);
     const tags = getAllTags(fileCache);
@@ -143,7 +145,12 @@ export class FetaPlugin extends Plugin {
 
     if (renderHtml) {
       const host = await this.openFile(file);
-      fileContent = (host.previewMode as any).renderer.previewEl.innerHTML;
+      const contentEl: HTMLElement = ((host.previewMode as any).renderer.previewEl as HTMLElement).cloneNode(
+        true
+      ) as HTMLElement;
+      this.postProcessHTML(contentEl, postProcess.linkPrepend);
+      fileContent = contentEl.innerHTML;
+      contentEl.detach();
     }
 
     const meta: NoteMeta = {
@@ -156,6 +163,19 @@ export class FetaPlugin extends Plugin {
     };
 
     return { meta, content: fileContent };
+  }
+
+  private postProcessHTML<T extends HTMLElement>(element: T, linkPrepend: string): T {
+    element.querySelectorAll('a').forEach((link) => {
+      if (link.href) {
+        link.href = join(linkPrepend, link.getAttribute('data-href'));
+      }
+      if (link.classList.contains('internal-link')) {
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
+      }
+    });
+    return element;
   }
 
   /**

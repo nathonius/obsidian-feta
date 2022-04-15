@@ -27,6 +27,7 @@ export interface FetaSettings {
   requiredFrontmatterKey: string;
   requiredTag: string;
   rootFolder: string;
+  linkPrepend: string;
 }
 
 export const DEFAULT_SETTINGS: FetaSettings = {
@@ -36,5 +37,6 @@ export const DEFAULT_SETTINGS: FetaSettings = {
   exportLocation: '',
   requiredFrontmatterKey: '',
   requiredTag: '',
-  rootFolder: ''
+  rootFolder: '',
+  linkPrepend: ''
 };
